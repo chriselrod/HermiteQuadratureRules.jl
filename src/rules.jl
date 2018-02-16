@@ -32,16 +32,47 @@ Reduce.Rational(false)
         out
     end
 end
-function tupGridd(x::NTuple{N,T}) where {N,T}
+function tupGridd(x::NTuple{N,T}) where {N,T<:Integer}
     Expr(:call, :*, ntuple(i -> gen_diff(x[i], i), Val{N}())... )
 end
+function tupGridd(x::NTuple{N,T}, j::Integer) where {N,T<:Integer}
+    Expr(:call, :*, ntuple(i -> gen_diff(x[i], i, j), Val{N}())... )
+end
 gen_diff(v, i) = v > 0 ? :( $(Symbol('`' + i, "_", v)) - $(Symbol('`' + i, "_", v-1)) ) : Symbol('`' + i, "_", v)
+function gen_diff(v, i, j)
+    letter = '`' + i
+    if i == j
+        out = :( $(Symbol('d', letter, "_", v)) - $(Symbol(letter, "_", v)) )
+    elseif v > 0
+        out = :( $(Symbol(letter, "_", v)) - $(Symbol(letter, "_", v-1)) )
+    else
+        out = Symbol(letter, "_", v)
+    end
+    out
+end
 
 
-function process_weights(x::Vector{NTuple{N,Int}}) where N
+function process_weights_no_deriv(x::Vector{NTuple{N,Int}}) where N
+    if length(x) == 1
+        return tupGridd(x[1])
+    end
     expr = Expr(:call, :+, tupGridd(x[1]), tupGridd(x[2]) )
     for i in 3:length(x)
         push!(expr.args, tupGridd(x[i]) )
+    end
+    expr
+end
+
+function process_weights(x::Vector{NTuple{N,Int}}) where N
+    expr = Expr(:call, :+, tupGridd(x[1]), tupGridd(x[2], 1) )
+    for j in 2:N
+        push!(expr.args, tupGridd(x[1], j) )
+    end
+    for i in 2:length(x)
+        push!(expr.args, tupGridd(x[i]) )
+        for j in 1:N
+            push!(expr.args, tupGridd(x[i], j) )
+        end
     end
     expr
 end
@@ -56,6 +87,9 @@ function weights(::Val{N}, l::Int) where N
     s1 = process_weights(p1)
     rcall(s1, :expand)::Expr
 end
+@generated weights(::Val{N}, ::Val{l}) where {N,l} = weights(Val{N}(), l)
+
+
 
 rules126 = readdlm("/home/celrod/Documents/notebooks/hermite_rules/rule_1_2_6_qr_0.csv", ',');
 nodes126 = rules126[1,:]
