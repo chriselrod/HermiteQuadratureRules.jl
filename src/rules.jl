@@ -92,7 +92,6 @@ function gen_diffD(v, i, j)
     out
 end
 
-
 function process_weights_no_deriv(x::Vector{NTuple{N,Int}}) where N
     if length(x) == 1
         return tupGridd(x[1])
