@@ -130,8 +130,8 @@ function print_weighted_weights(nodes, weights)
 end
 
 
-using Reduce, SpecialFunctions
-Reduce.Rational(false);
+#using Reduce, SpecialFunctions
+#Reduce.Rational(false);
 
 gen_diff(v, i) = v > 0 ? :( $(Symbol('`' + i, :_, v)) - $(Symbol('`' + i, :_, v-1)) ) : Symbol('`' + i, :_, v)
 function tupGridd(x::NTuple{N,T}) where {N,T<:Integer}
@@ -208,7 +208,6 @@ end
         out
     end
 end
-
 
 
 

@@ -2,21 +2,29 @@ __precompile__()
 
 module HermiteQuadratureRules
 
-using Reduce, Compat, Base.Cartesian, Distributions, SpecialFunctions
+using #Reduce,
+      Compat,
+      Base.Cartesian,
+     # Distributions,
+      SpecialFunctions
 
 
 export  generate_weights,
         eval_on_nodes,
-        herm_design
+        herm_design,
+        calc_weights,
+        rule_lengths,
+        gk_nodes,
+        weighted_gk_weights
 
 
 include("rules_grad_free.jl")
-include("rules.jl")
-include("distribution_derivatives.jl")
+#include("rules.jl")
+#include("distribution_derivatives.jl")
 
 function __init__()
     setprecision(512)
-    Reduce.Rational(false)
+#    Reduce.Rational(false)
     nothing
 end
 
@@ -195,26 +203,26 @@ function eval_on_nodes(f, nodes::AbstractVector{T}) where T
     end
     out
 end
-function eval_on_nodes(f::Distributions.UnivariateDistribution, nodes::AbstractVector{T}) where T
-    out = Matrix{T}(2, length(nodes))
-    for i ∈ eachindex(nodes)
-        out[:,i] .= fg(f, nodes[i])
-    end
-    out
-end
-function eval_weighted_nodes(f::Distributions.UnivariateDistribution, nodes::AbstractVector{T}) where T
-    out = Matrix{T}(2, length(nodes))
-    for i ∈ eachindex(nodes)
-        out[:,i] .= fgw(f, nodes[i])
-    end
-    out
-end
+# function eval_on_nodes(f::Distributions.UnivariateDistribution, nodes::AbstractVector{T}) where T
+#     out = Matrix{T}(2, length(nodes))
+#     for i ∈ eachindex(nodes)
+#         out[:,i] .= fg(f, nodes[i])
+#     end
+#     out
+# end
+# function eval_weighted_nodes(f::Distributions.UnivariateDistribution, nodes::AbstractVector{T}) where T
+#     out = Matrix{T}(2, length(nodes))
+#     for i ∈ eachindex(nodes)
+#         out[:,i] .= fgw(f, nodes[i])
+#     end
+#     out
+# end
 
 
-using Optim, ForwardDiff
-initial_n = BigFloat.(sort(rand(4)));
-node_weight_magnitude(nodes) = sum(x -> (x^8-1//(4length(nodes)+2) ), generate_weights_sym(nodes))
-td = TwiceDifferentiable(node_weight_magnitude, initial_n; autodiff = :forward)
+# using Optim, ForwardDiff
+# initial_n = BigFloat.(sort(rand(4)));
+# node_weight_magnitude(nodes) = sum(x -> (x^8-1//(4length(nodes)+2) ), generate_weights_sym(nodes))
+# td = TwiceDifferentiable(node_weight_magnitude, initial_n; autodiff = :forward)
 
-opt = optimize(td, initial_n, Newton())
+# opt = optimize(td, initial_n, Newton())
 end # module
